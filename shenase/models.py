@@ -1,0 +1,44 @@
+from datetime import datetime, timezone
+
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Boolean,
+    Integer,
+    String,
+    Enum,
+    DateTime,
+)
+from sqlalchemy.orm import relationship
+
+from shenase import enums
+from shenase.database import Base
+from shenase.config import DEFAULT_AVATAR
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(35), unique=True, nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    hashed_password = Column(String(65), nullable=True)
+    role = Column(Enum(enums.UserRole), default=enums.UserRole.USER)
+    is_verified = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    profile = relationship('Profile', back_populates='user', uselist=False)
+
+
+class Profile(Base):
+    __tablename__ = 'profiles'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    display_name = Column(String(50), nullable=False)
+    avatar = Column(String, default=DEFAULT_AVATAR)
+    bio = Column(String(300))
+    location = Column(String(200))
+
+    user = relationship('User', back_populates='profile')
