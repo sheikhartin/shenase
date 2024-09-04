@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 from fastapi.testclient import TestClient
 
-from shenase import models
+from shenase import models, enums
 
 
 def test_create_user(test_client: TestClient) -> None:
@@ -25,7 +25,8 @@ def test_create_user(test_client: TestClient) -> None:
 
 
 def test_login_user(
-    test_client: TestClient, create_test_user: models.User
+    test_client: TestClient,
+    create_test_user: models.User,
 ) -> None:
     response = test_client.post(
         '/token/', data={'username': 'johndoe', 'password': 'password123'}
@@ -53,6 +54,26 @@ def test_read_users_me(
     assert data['username'] == 'johndoe'
 
 
+def test_change_user_role(
+    test_client: TestClient,
+    create_test_admin_user: models.User,
+    create_test_user: models.User,
+) -> None:
+    login_response = test_client.post(
+        '/token/', data={'username': 'adminuser', 'password': 'testpass123'}
+    )
+    login_data = login_response.json()
+    token = login_data['access_token']
+    response = test_client.put(
+        '/users/johndoe/role/',
+        headers={'Authorization': f'Bearer {token}'},
+        params={'new_role': enums.UserRole.MODERATOR},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data['role'] == enums.UserRole.MODERATOR
+
+
 def test_upload_avatar(
     test_client: TestClient,
     create_test_user: models.User,
@@ -67,11 +88,11 @@ def test_upload_avatar(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
     )
     with open(test_avatar_file, 'rb') as f:
-        response = test_client.post(
-            '/users/avatar/',
+        response = test_client.put(
+            '/users/me/',
             headers={'Authorization': f'Bearer {token}'},
             files={
-                'file': (
+                'avatar': (
                     'avatar.png',
                     f,
                     'image/png',
@@ -80,5 +101,4 @@ def test_upload_avatar(
         )
     assert response.status_code == 200
     data = response.json()
-    assert data['response_message'] == 'Avatar uploaded successfully.'
-    assert 'file_location' in data
+    assert data['profile']['avatar'] == 'mocked_avatar_path.png'
