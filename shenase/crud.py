@@ -6,15 +6,20 @@ from typing import Optional
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
-from shenase import models, schemas, utils
+from shenase import models, schemas, enums, utils
 from shenase.exceptions import (
+    UserNotFoundError,
     UsernameAlreadyExistsError,
     EmailAlreadyExistsError,
 )
 from shenase.config import AVATAR_STORAGE_PATH
 
 
-def get_user(db: Session, user_id: int) -> Optional[models.User]:
+def get_users(db: Session) -> Optional[list[models.User]]:
+    return db.query(models.User).all()
+
+
+def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
@@ -49,7 +54,6 @@ def get_profile_by_user_id(
 def create_user(
     db: Session,
     user: schemas.UserCreate,
-    avatar: Optional[UploadFile] = None,
 ) -> models.User:
     if get_user_by_username(db, user.username) is not None:
         raise UsernameAlreadyExistsError(user.username)
@@ -66,7 +70,9 @@ def create_user(
     db.refresh(db_user)
 
     avatar_file_path = (
-        save_avatar(db, db_user.id, avatar) if avatar is not None else None
+        save_avatar(db, db_user.id, user.avatar)
+        if user.avatar is not None
+        else None
     )
     db_profile = models.Profile(
         user_id=db_user.id,
@@ -79,6 +85,57 @@ def create_user(
     db.commit()
     db.refresh(db_profile)
 
+    return db_user
+
+
+def update_user(
+    db: Session,
+    user: schemas.UserProfileUpdate,
+    current_user: models.User,
+) -> models.User:
+    if (
+        user.username is not None
+        and get_user_by_username(db, user.username) is not None
+    ):
+        raise UsernameAlreadyExistsError(user.username)
+    elif (
+        user.email is not None
+        and get_user_by_email(db, user.email) is not None
+    ):
+        raise EmailAlreadyExistsError(user.email)
+
+    current_user.username = user.username or current_user.username
+    current_user.email = user.email or current_user.email
+    if user.password is not None:
+        current_user.password = utils.get_password_hash(user.password)
+    current_user.profile.display_name = (
+        user.display_name or current_user.profile.display_name
+    )
+    current_user.profile.bio = user.bio or current_user.profile.bio
+    current_user.profile.location = (
+        user.location or current_user.profile.location
+    )
+    if user.avatar is not None:
+        avatar_file_path = save_avatar(db, current_user.id, user.avatar)
+        current_user.profile.avatar = avatar_file_path
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
+def update_user_role(
+    db: Session,
+    username: str,
+    new_role: enums.UserRole,
+) -> models.User:
+    db_user = get_user_by_username(db, username)
+    if db_user is None:
+        raise UserNotFoundError(username)
+
+    db_user.role = new_role
+    db.commit()
+    db.refresh(db_user)
     return db_user
 
 
