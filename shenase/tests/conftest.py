@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
-from shenase import models, schemas, crud
+from shenase import models, schemas, crud, enums
 from shenase.main import app
 from shenase.database import Base, get_db
 from shenase.config import TEST_DATABASE_URL
@@ -61,6 +61,22 @@ def test_client(
 
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture(scope='function')
+def create_test_admin_user(test_db_session: Session) -> models.User:
+    user_data = schemas.UserCreate(
+        username='adminuser',
+        email='adminuser@example.com',
+        password='testpass123',
+        display_name='Admin User',
+    )
+    crud.create_user(db=test_db_session, user=user_data)
+    return crud.update_user_role(
+        db=test_db_session,
+        username='adminuser',
+        new_role=enums.UserRole.ADMIN,
+    )
 
 
 @pytest.fixture(scope='function')

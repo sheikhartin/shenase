@@ -1,7 +1,7 @@
-from enum import Enum, auto
+from enum import StrEnum, auto
 
 
-class UserRole(Enum):
+class UserRole(StrEnum):
     ADMIN = auto()
     MODERATOR = auto()
     USER = auto()

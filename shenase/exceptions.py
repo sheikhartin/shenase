@@ -41,6 +41,22 @@ class UserCreationError(HTTPException):
         )
 
 
+class UserUpdateError(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Failed to update user.',
+        )
+
+
+class NotAuthorizedError(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Not authorized.',
+        )
+
+
 class IncorrectUsernameOrPasswordError(HTTPException):
     def __init__(self) -> None:
         super().__init__(
