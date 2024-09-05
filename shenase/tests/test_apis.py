@@ -64,7 +64,7 @@ def test_change_user_role(
     )
     login_data = login_response.json()
     token = login_data['access_token']
-    response = test_client.put(
+    response = test_client.patch(
         '/users/johndoe/role/',
         headers={'Authorization': f'Bearer {token}'},
         params={'new_role': enums.UserRole.MODERATOR},
@@ -72,6 +72,43 @@ def test_change_user_role(
     assert response.status_code == 200
     data = response.json()
     assert data['role'] == enums.UserRole.MODERATOR
+
+
+def test_update_user(
+    test_client: TestClient,
+    create_test_user: models.User,
+    mock_save_avatar: Mock,
+) -> None:
+    login_response = test_client.post(
+        '/token/', data={'username': 'johndoe', 'password': 'password123'}
+    )
+    login_data = login_response.json()
+    token = login_data['access_token']
+
+    test_avatar_file = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
+    )
+    with open(test_avatar_file, 'rb') as f:
+        response = test_client.patch(
+            '/users/me/',
+            headers={'Authorization': f'Bearer {token}'},
+            data={
+                'username': 'updateduser',
+                'display_name': 'Updated User',
+            },
+            files={
+                'avatar': (
+                    'avatar.png',
+                    f,
+                    'image/png',
+                )
+            },
+        )
+    assert response.status_code == 200
+    data = response.json()
+    assert data['username'] == 'updateduser'
+    assert data['profile']['display_name'] == 'Updated User'
+    assert data['profile']['avatar'] == 'mocked_avatar_path.png'
 
 
 def test_upload_avatar(
@@ -88,7 +125,7 @@ def test_upload_avatar(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
     )
     with open(test_avatar_file, 'rb') as f:
-        response = test_client.put(
+        response = test_client.patch(
             '/users/me/',
             headers={'Authorization': f'Bearer {token}'},
             files={

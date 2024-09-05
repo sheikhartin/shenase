@@ -45,11 +45,6 @@ class User(UserBase):
     profile: Optional[Profile] = None
 
 
-class AvatarUploadResponse(BaseModel):
-    response_message: str
-    file_location: str
-
-
 class UserProfileUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=35)
     email: Optional[EmailStr] = None
