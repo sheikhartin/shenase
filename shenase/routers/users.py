@@ -47,7 +47,7 @@ async def create_user(
     return crud.create_user(db=db, user=new_user)
 
 
-@router.put('/users/me/', response_model=schemas.User)
+@router.patch('/users/me/', response_model=schemas.User)
 async def update_user(
     username: str = Body(None),
     email: str = Body(None),
@@ -74,7 +74,7 @@ async def update_user(
     return crud.update_user(db=db, user=user_data, current_user=current_user)
 
 
-@router.put('/users/{username}/role/', response_model=schemas.User)
+@router.patch('/users/{username}/role/', response_model=schemas.User)
 @role_required([enums.UserRole.ADMIN])
 async def change_user_role(
     username: str,
