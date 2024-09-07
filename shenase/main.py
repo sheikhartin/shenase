@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from shenase.database import Base, engine
 from shenase.routers import auth, users
+from shenase.middlewares import CookieAuthMiddleware
 from shenase.config import AVATAR_UPLOAD_FOLDER, AVATAR_STORAGE_PATH
 
 
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+app.add_middleware(CookieAuthMiddleware)
 
 static_files_path = f'/{AVATAR_UPLOAD_FOLDER}'
 static_files_directory = os.path.dirname(AVATAR_UPLOAD_FOLDER)
