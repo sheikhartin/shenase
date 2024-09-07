@@ -79,3 +79,15 @@ def test_update_user_role(
         new_role=enums.UserRole.MODERATOR,
     )
     assert updated_user.role == enums.UserRole.MODERATOR
+
+
+def test_update_user_status(
+    test_db_session: Session,
+    create_test_user: models.User,
+) -> None:
+    updated_user = crud.update_user_status(
+        db=test_db_session,
+        username='johndoe',
+        new_status=enums.UserStatus.SUSPENDED,
+    )
+    assert updated_user.status == enums.UserStatus.SUSPENDED
