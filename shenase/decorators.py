@@ -14,7 +14,9 @@ def role_required(
         @wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             current_user = kwargs.get('current_user')
-            if current_user.role not in roles:
+            if current_user is None:
+                raise RuntimeError
+            elif current_user.role not in roles:
                 raise NotAuthorizedError
             return await func(*args, **kwargs)
 
