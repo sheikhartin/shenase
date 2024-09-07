@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from shenase import models, schemas, crud, enums
 from shenase.main import app
-from shenase.database import Base, get_db
+from shenase.database import Base
+from shenase.dependencies import get_db
 from shenase.config import TEST_DATABASE_URL
 
 engine = create_engine(
