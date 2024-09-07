@@ -25,7 +25,7 @@ class User(Base):
     hashed_password = Column(String(65), nullable=True)
     role = Column(Enum(enums.UserRole), default=enums.UserRole.USER)
     is_verified = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=True)
+    status = Column(Enum(enums.UserStatus), default=enums.UserStatus.ACTIVE)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     profile = relationship('Profile', back_populates='user', uselist=False)
