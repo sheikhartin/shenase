@@ -139,6 +139,21 @@ def update_user_role(
     return db_user
 
 
+def update_user_status(
+    db: Session,
+    username: str,
+    new_status: enums.UserStatus,
+) -> models.User:
+    db_user = get_user_by_username(db, username)
+    if db_user is None:
+        raise UserNotFoundError(username)
+
+    db_user.status = new_status
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
 def _create_unique_filename(filename: str) -> str:
     unique_id = uuid.uuid4().hex[:15]
     _, file_extension = os.path.splitext(filename)
