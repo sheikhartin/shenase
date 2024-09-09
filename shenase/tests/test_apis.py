@@ -44,7 +44,8 @@ def test_read_users_me(
         '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
     user_id = login_response.cookies.get('user_id')
-    response = test_client.get('/users/me/', cookies={'user_id': user_id})
+    test_client.cookies.set('user_id', user_id)
+    response = test_client.get('/users/me/')
     assert response.status_code == 200
     data = response.json()
     assert data['username'] == 'johndoe'
@@ -59,10 +60,10 @@ def test_change_user_role(
         '/login/', json={'username': 'adminuser', 'password': 'testpass123'}
     )
     user_id = login_response.cookies.get('user_id')
+    test_client.cookies.set('user_id', user_id)
     response = test_client.patch(
         '/users/johndoe/role/',
         params={'new_role': enums.UserRole.MODERATOR},
-        cookies={'user_id': user_id},
     )
     assert response.status_code == 200
     data = response.json()
@@ -78,10 +79,10 @@ def test_change_user_status(
         '/login/', json={'username': 'adminuser', 'password': 'testpass123'}
     )
     user_id = login_response.cookies.get('user_id')
+    test_client.cookies.set('user_id', user_id)
     response = test_client.patch(
         '/users/johndoe/status/',
         params={'new_status': enums.UserStatus.INACTIVE},
-        cookies={'user_id': user_id},
     )
     assert response.status_code == 200
     data = response.json()
@@ -97,6 +98,7 @@ def test_update_user(
         '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
     user_id = login_response.cookies.get('user_id')
+    test_client.cookies.set('user_id', user_id)
 
     test_avatar_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
@@ -115,7 +117,6 @@ def test_update_user(
                     'image/png',
                 )
             },
-            cookies={'user_id': user_id},
         )
     assert response.status_code == 200
     data = response.json()
@@ -133,6 +134,7 @@ def test_upload_avatar(
         '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
     user_id = login_response.cookies.get('user_id')
+    test_client.cookies.set('user_id', user_id)
     test_avatar_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
     )
@@ -146,7 +148,6 @@ def test_upload_avatar(
                     'image/png',
                 )
             },
-            cookies={'user_id': user_id},
         )
     assert response.status_code == 200
     data = response.json()
