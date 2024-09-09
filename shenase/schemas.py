@@ -7,6 +7,11 @@ from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from shenase import enums
 
 
+class LoginForm(BaseModel):
+    username: str
+    password: str
+
+
 class ProfileBase(BaseModel):
     display_name: str = Field(..., min_length=3, max_length=50)
     avatar: Optional[str] = None
@@ -40,7 +45,7 @@ class User(UserBase):
     id: int
     role: enums.UserRole
     is_verified: bool
-    is_active: bool
+    status: enums.UserStatus
     created_at: datetime
     profile: Optional[Profile] = None
 
@@ -53,8 +58,3 @@ class UserProfileUpdate(BaseModel):
     bio: Optional[str] = Field(None, max_length=300)
     location: Optional[str] = Field(None, max_length=200)
     avatar: Optional[UploadFile] = None
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str

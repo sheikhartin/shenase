@@ -1,90 +1,50 @@
 from datetime import datetime, timedelta, timezone
-
-import jwt
-from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, Request, Response, Body
 from sqlalchemy.orm import Session
 
-from shenase import models, schemas, crud, utils
-from shenase.database import get_db
+from shenase import schemas, crud, utils
+from shenase.dependencies import get_db
 from shenase.exceptions import (
-    InactiveUserError,
     IncorrectUsernameOrPasswordError,
     CredentialsError,
 )
-from shenase.config import (
-    JWT_ENCRYPTION_SECRET,
-    JWT_SIGNATURE_METHOD,
-    JWT_ACCESS_TOKEN_TTL_MINUTES,
-)
+from shenase.config import COOKIE_EXPIRE_DAYS
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 
-
-def create_access_token(data: dict) -> str:
-    return jwt.encode(
-        {
-            **data,
-            'exp': (
-                datetime.now(timezone.utc)
-                + timedelta(minutes=JWT_ACCESS_TOKEN_TTL_MINUTES)
-            ),
-        },
-        JWT_ENCRYPTION_SECRET,
-        algorithm=JWT_SIGNATURE_METHOD,
-    )
-
-
-async def get_current_user(
+@router.post('/login', response_model=schemas.User)
+async def login(
+    response: Response,
+    login_form: schemas.LoginForm = Body(...),
     db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-) -> models.User:
-    try:
-        payload = jwt.decode(
-            token,
-            JWT_ENCRYPTION_SECRET,
-            algorithms=[JWT_SIGNATURE_METHOD],
-        )
-        username = payload.get('sub')
-        if username is None:
-            raise CredentialsError
-    except jwt.PyJWTError:
-        raise CredentialsError
-
-    user = crud.get_user_by_username(db=db, username=username)
-    if user is None:
-        raise CredentialsError
+):
+    user = crud.get_user_by_username(db=db, username=login_form.username)
+    if user is None or not utils.verify_password(
+        login_form.password, user.hashed_password
+    ):
+        raise IncorrectUsernameOrPasswordError
+    response.set_cookie(
+        key='user_id',
+        value=str(user.id),
+        expires=(
+            datetime.now(timezone.utc) + timedelta(days=COOKIE_EXPIRE_DAYS)
+        ),
+        httponly=True,
+        secure=True,
+        samesite='lax',
+    )
     return user
 
 
-async def get_current_active_user(
-    current_user: schemas.User = Depends(get_current_user),
-):
-    if not current_user.is_active:
-        raise InactiveUserError
-    return current_user
-
-
-@router.post('/token', response_model=schemas.Token)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db),
-):
-    user = crud.get_user_by_username(db=db, username=form_data.username)
-    if not user or not utils.verify_password(
-        form_data.password, user.hashed_password
-    ):
-        raise IncorrectUsernameOrPasswordError
-    return {
-        'access_token': create_access_token(data={'sub': user.username}),
-        'token_type': 'bearer',
-    }
+@router.post('/logout')
+async def logout(response: Response):
+    response.delete_cookie(key='user_id')
+    return {'message': 'Successfully logged out.'}
 
 
 @router.get('/users/me/', response_model=schemas.User)
-async def read_users_me(
-    current_user: schemas.User = Depends(get_current_active_user),
-):
-    return current_user
+async def read_users_me(request: Request):
+    if request.state.user is None:
+        raise CredentialsError
+    return request.state.user

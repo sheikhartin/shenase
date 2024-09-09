@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from shenase import models, schemas, crud, enums
 from shenase.main import app
-from shenase.database import Base, get_db
+from shenase.database import Base
+from shenase.dependencies import get_db
 from shenase.config import TEST_DATABASE_URL
 
 engine = create_engine(
@@ -88,6 +89,18 @@ def create_test_user(test_db_session: Session) -> models.User:
         display_name='John Doe',
     )
     return crud.create_user(db=test_db_session, user=user_data)
+
+
+@pytest.fixture(scope='function')
+def mock_middlewares_get_db(
+    test_db_session: Session,
+) -> Generator[Mock, None, None]:
+    def get_test_db() -> Generator[Session, None, None]:
+        yield test_db_session
+
+    with patch('shenase.middlewares.get_db') as mock_get_db:
+        mock_get_db.side_effect = get_test_db
+        yield mock_get_db
 
 
 @pytest.fixture(scope='session')

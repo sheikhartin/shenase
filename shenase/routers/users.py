@@ -4,10 +4,9 @@ from fastapi import APIRouter, Depends, Body, UploadFile, File
 from sqlalchemy.orm import Session
 
 from shenase import schemas, crud, enums
-from shenase.database import get_db
+from shenase.dependencies import get_db, get_current_active_user
 from shenase.decorators import role_required
 from shenase.exceptions import UserCreationError, UserUpdateError
-from shenase.routers.auth import get_current_active_user
 
 router = APIRouter()
 
@@ -83,3 +82,16 @@ async def change_user_role(
     current_user: schemas.User = Depends(get_current_active_user),
 ):
     return crud.update_user_role(db=db, username=username, new_role=new_role)
+
+
+@router.patch('/users/{username}/status/', response_model=schemas.User)
+@role_required([enums.UserRole.ADMIN, enums.UserRole.MODERATOR])
+async def change_user_status(
+    username: str,
+    new_status: enums.UserStatus,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_active_user),
+):
+    return crud.update_user_status(
+        db=db, username=username, new_status=new_status
+    )
