@@ -91,6 +91,18 @@ def create_test_user(test_db_session: Session) -> models.User:
     return crud.create_user(db=test_db_session, user=user_data)
 
 
+@pytest.fixture(scope='function')
+def mock_middlewares_get_db(
+    test_db_session: Session,
+) -> Generator[Mock, None, None]:
+    def get_test_db() -> Generator[Session, None, None]:
+        yield test_db_session
+
+    with patch('shenase.middlewares.get_db') as mock_get_db:
+        mock_get_db.side_effect = get_test_db
+        yield mock_get_db
+
+
 @pytest.fixture(scope='session')
 def mock_save_avatar() -> Generator[Mock, None, None]:
     with patch('shenase.crud.save_avatar') as mock_save_avatar:

@@ -29,26 +29,22 @@ def test_login_user(
     create_test_user: models.User,
 ) -> None:
     response = test_client.post(
-        '/token/', data={'username': 'johndoe', 'password': 'password123'}
+        '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
     assert response.status_code == 200
-    data = response.json()
-    assert 'access_token' in data
-    assert data['token_type'] == 'bearer'
+    assert 'user_id' in response.cookies
 
 
 def test_read_users_me(
     test_client: TestClient,
     create_test_user: models.User,
+    mock_middlewares_get_db: Mock,
 ) -> None:
     login_response = test_client.post(
-        '/token/', data={'username': 'johndoe', 'password': 'password123'}
+        '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
-    login_data = login_response.json()
-    token = login_data['access_token']
-    response = test_client.get(
-        '/users/me/', headers={'Authorization': f'Bearer {token}'}
-    )
+    user_id = login_response.cookies.get('user_id')
+    response = test_client.get('/users/me/', cookies={'user_id': user_id})
     assert response.status_code == 200
     data = response.json()
     assert data['username'] == 'johndoe'
@@ -60,18 +56,36 @@ def test_change_user_role(
     create_test_user: models.User,
 ) -> None:
     login_response = test_client.post(
-        '/token/', data={'username': 'adminuser', 'password': 'testpass123'}
+        '/login/', json={'username': 'adminuser', 'password': 'testpass123'}
     )
-    login_data = login_response.json()
-    token = login_data['access_token']
+    user_id = login_response.cookies.get('user_id')
     response = test_client.patch(
         '/users/johndoe/role/',
-        headers={'Authorization': f'Bearer {token}'},
         params={'new_role': enums.UserRole.MODERATOR},
+        cookies={'user_id': user_id},
     )
     assert response.status_code == 200
     data = response.json()
     assert data['role'] == enums.UserRole.MODERATOR
+
+
+def test_change_user_status(
+    test_client: TestClient,
+    create_test_admin_user: models.User,
+    create_test_user: models.User,
+) -> None:
+    login_response = test_client.post(
+        '/login/', json={'username': 'adminuser', 'password': 'testpass123'}
+    )
+    user_id = login_response.cookies.get('user_id')
+    response = test_client.patch(
+        '/users/johndoe/status/',
+        params={'new_status': enums.UserStatus.INACTIVE},
+        cookies={'user_id': user_id},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data['status'] == enums.UserStatus.INACTIVE
 
 
 def test_update_user(
@@ -80,10 +94,9 @@ def test_update_user(
     mock_save_avatar: Mock,
 ) -> None:
     login_response = test_client.post(
-        '/token/', data={'username': 'johndoe', 'password': 'password123'}
+        '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
-    login_data = login_response.json()
-    token = login_data['access_token']
+    user_id = login_response.cookies.get('user_id')
 
     test_avatar_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
@@ -91,7 +104,6 @@ def test_update_user(
     with open(test_avatar_file, 'rb') as f:
         response = test_client.patch(
             '/users/me/',
-            headers={'Authorization': f'Bearer {token}'},
             data={
                 'username': 'updateduser',
                 'display_name': 'Updated User',
@@ -103,6 +115,7 @@ def test_update_user(
                     'image/png',
                 )
             },
+            cookies={'user_id': user_id},
         )
     assert response.status_code == 200
     data = response.json()
@@ -117,17 +130,15 @@ def test_upload_avatar(
     mock_save_avatar: Mock,
 ) -> None:
     login_response = test_client.post(
-        '/token/', data={'username': 'johndoe', 'password': 'password123'}
+        '/login/', json={'username': 'johndoe', 'password': 'password123'}
     )
-    login_data = login_response.json()
-    token = login_data['access_token']
+    user_id = login_response.cookies.get('user_id')
     test_avatar_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 'avatar.png'
     )
     with open(test_avatar_file, 'rb') as f:
         response = test_client.patch(
             '/users/me/',
-            headers={'Authorization': f'Bearer {token}'},
             files={
                 'avatar': (
                     'avatar.png',
@@ -135,6 +146,7 @@ def test_upload_avatar(
                     'image/png',
                 )
             },
+            cookies={'user_id': user_id},
         )
     assert response.status_code == 200
     data = response.json()
