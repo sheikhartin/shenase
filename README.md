@@ -25,7 +25,7 @@ poetry run pytest -rP
 Run the server:
 
 ```
-poetry run uvicorn shenase.main:app --reload --port 8808
+poetry run uvicorn shenase.main:app --reload --port 8808 --log-config log_config.json
 ```
 
 Then navigate to http://127.0.0.1:8808/docs.
