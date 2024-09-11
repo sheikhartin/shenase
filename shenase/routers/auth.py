@@ -13,7 +13,7 @@ from shenase.config import COOKIE_EXPIRE_DAYS
 router = APIRouter()
 
 
-@router.post('/login', response_model=schemas.User)
+@router.post('/login/', response_model=schemas.User)
 async def login(
     response: Response,
     login_form: schemas.LoginForm = Body(...),
@@ -37,7 +37,7 @@ async def login(
     return user
 
 
-@router.post('/logout')
+@router.post('/logout/')
 async def logout(response: Response):
     response.delete_cookie(key='user_id')
     return {'message': 'Successfully logged out.'}
