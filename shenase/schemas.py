@@ -7,11 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from shenase import enums
 
 
-class LoginForm(BaseModel):
-    username: str
-    password: str
-
-
 class ProfileBase(BaseModel):
     display_name: str = Field(..., min_length=3, max_length=50)
     avatar: Optional[str] = None
