@@ -16,12 +16,13 @@ router = APIRouter()
 @router.post('/login/', response_model=schemas.User)
 async def login(
     response: Response,
-    login_form: schemas.LoginForm = Body(...),
+    username: str = Body(...),
+    password: str = Body(...),
     db: Session = Depends(get_db),
 ):
-    user = crud.get_user_by_username(db=db, username=login_form.username)
+    user = crud.get_user_by_username(db=db, username=username)
     if user is None or not utils.verify_password(
-        login_form.password, user.hashed_password
+        password, user.hashed_password
     ):
         raise IncorrectUsernameOrPasswordError
     response.set_cookie(
