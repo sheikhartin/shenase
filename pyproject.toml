@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shenase"
-version = "0.3.1"
+version = "0.3.2"
 description = "System for managing user access and permissions."
 license = "MIT"
 authors = ["Artin Mohammadi <sheikhartin@gmail.com>"]
