@@ -44,7 +44,7 @@ def test_get_user(
     test_db_session: Session,
     create_test_user: models.User,
 ) -> None:
-    user = crud.get_user_by_id(db=test_db_session, user_id=1)
+    user = crud.get_user_by_id(db=test_db_session, user_id=create_test_user.id)
     assert user is not None
     assert user.username == 'johndoe'
 
