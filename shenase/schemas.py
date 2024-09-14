@@ -21,8 +21,8 @@ class ProfileCreate(ProfileBase):
 class Profile(ProfileBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
-    user_id: int
+    id: str
+    user_id: str
 
 
 class UserBase(BaseModel):
@@ -37,7 +37,7 @@ class UserCreate(UserBase, ProfileCreate):
 class User(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: str
     role: enums.UserRole
     is_verified: bool
     status: enums.UserStatus
