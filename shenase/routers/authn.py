@@ -27,7 +27,7 @@ async def login(
         raise IncorrectUsernameOrPasswordError
     response.set_cookie(
         key='user_id',
-        value=str(user.id),
+        value=user.id,
         expires=(
             datetime.now(timezone.utc) + timedelta(days=COOKIE_EXPIRE_DAYS)
         ),

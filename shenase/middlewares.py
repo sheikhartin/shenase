@@ -19,7 +19,7 @@ class CookieAuthMiddleware(BaseHTTPMiddleware):
         if user_id is not None:
             try:
                 db = next(get_db())
-                user = crud.get_user_by_id(db=db, user_id=int(user_id))
+                user = crud.get_user_by_id(db=db, user_id=user_id)
                 if user is None:
                     raise CredentialsError
                 request.state.user = user
