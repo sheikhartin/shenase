@@ -9,7 +9,7 @@ from shenase import enums
 
 class ProfileBase(BaseModel):
     display_name: str = Field(..., min_length=3, max_length=50)
-    avatar: Optional[str] = None
+    avatar: Optional[str] = Field(None, max_length=35)
     bio: Optional[str] = Field(None, max_length=300)
     location: Optional[str] = Field(None, max_length=200)
 
@@ -21,7 +21,7 @@ class ProfileCreate(ProfileBase):
 class Profile(ProfileBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: str = Field(..., min_length=5, max_length=32)
     user_id: str
 
 
@@ -37,7 +37,7 @@ class UserCreate(UserBase, ProfileCreate):
 class User(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: str = Field(..., min_length=5, max_length=32)
     role: enums.UserRole
     is_verified: bool
     status: enums.UserStatus
