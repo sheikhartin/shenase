@@ -21,7 +21,7 @@ async def get_current_user(
 ) -> models.User:
     user_id = request.cookies.get('user_id')
     if user_id is not None:
-        user = crud.get_user_by_id(db, user_id=int(user_id))
+        user = crud.get_user_by_id(db, user_id=user_id)
         if user is None:
             raise CredentialsError
         return user

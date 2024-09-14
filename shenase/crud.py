@@ -19,7 +19,7 @@ def get_users(db: Session) -> Optional[list[models.User]]:
     return db.query(models.User).all()
 
 
-def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
+def get_user_by_id(db: Session, user_id: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
@@ -33,7 +33,7 @@ def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_profile(db: Session, profile_id: int) -> Optional[models.Profile]:
+def get_profile(db: Session, profile_id: str) -> Optional[models.Profile]:
     return (
         db.query(models.Profile)
         .filter(models.Profile.id == profile_id)
@@ -42,7 +42,8 @@ def get_profile(db: Session, profile_id: int) -> Optional[models.Profile]:
 
 
 def get_profile_by_user_id(
-    db: Session, user_id: int
+    db: Session,
+    user_id: str,
 ) -> Optional[models.Profile]:
     return (
         db.query(models.Profile)
@@ -160,7 +161,7 @@ def _create_unique_filename(filename: str) -> str:
     return f'{unique_id}{file_extension}'
 
 
-def save_avatar(db: Session, user_id: int, file: UploadFile) -> str:
+def save_avatar(db: Session, user_id: str, file: UploadFile) -> str:
     filename = _create_unique_filename(file.filename)
     file_path = os.path.join(AVATAR_STORAGE_PATH, filename)
     with open(file_path, 'wb') as f:

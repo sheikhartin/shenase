@@ -65,14 +65,19 @@ def test_client(
 
 
 @pytest.fixture(scope='function')
-def create_test_admin_user(test_db_session: Session) -> models.User:
+def create_test_admin_user(
+    test_db_session: Session,
+    mock_middlewares_get_db: Mock,
+) -> models.User:
     user_data = schemas.UserCreate(
         username='adminuser',
         email='adminuser@example.com',
         password='testpass123',
         display_name='Admin User',
     )
-    crud.create_user(db=test_db_session, user=user_data)
+    with patch('shenase.models.uuid.uuid4') as mock_uuid:
+        mock_uuid.return_value.hex = 'admin_id'
+        crud.create_user(db=test_db_session, user=user_data)
     return crud.update_user_role(
         db=test_db_session,
         username='adminuser',
@@ -81,14 +86,19 @@ def create_test_admin_user(test_db_session: Session) -> models.User:
 
 
 @pytest.fixture(scope='function')
-def create_test_user(test_db_session: Session) -> models.User:
+def create_test_user(
+    test_db_session: Session,
+    mock_middlewares_get_db: Mock,
+) -> models.User:
     user_data = schemas.UserCreate(
         username='johndoe',
         email='johndoe@example.com',
         password='password123',
         display_name='John Doe',
     )
-    return crud.create_user(db=test_db_session, user=user_data)
+    with patch('shenase.models.uuid.uuid4') as mock_uuid:
+        mock_uuid.return_value.hex = 'test_id'
+        return crud.create_user(db=test_db_session, user=user_data)
 
 
 @pytest.fixture(scope='function')
