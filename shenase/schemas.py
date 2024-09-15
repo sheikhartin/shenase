@@ -21,8 +21,8 @@ class ProfileCreate(ProfileBase):
 class Profile(ProfileBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str = Field(..., min_length=5, max_length=32)
-    user_id: str
+    id: int
+    user_id: str = Field(..., min_length=5, max_length=32)
 
 
 class UserBase(BaseModel):
