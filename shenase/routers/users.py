@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 from shenase import schemas, crud, enums
 from shenase.dependencies import get_db, get_current_active_user
 from shenase.decorators import role_required
-from shenase.exceptions import UserCreationError, UserUpdateError
+from shenase.exceptions import (
+    UserNotFoundError,
+    UserCreationError,
+    UserUpdateError,
+)
 
 router = APIRouter()
 
@@ -18,6 +22,17 @@ async def read_users(
     current_user: schemas.User = Depends(get_current_active_user),
 ):
     return crud.get_users(db=db)
+
+
+@router.get('/users/{username}/profile/', response_model=schemas.Profile)
+async def read_user_profile(
+    username: str,
+    db: Session = Depends(get_db),
+):
+    profile = crud.get_profile_by_username(db=db, username=username)
+    if profile is None:
+        raise UserNotFoundError(username)
+    return profile
 
 
 @router.post('/users/', response_model=schemas.User)
