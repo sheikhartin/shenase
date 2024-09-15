@@ -4,6 +4,7 @@ from unittest.mock import Mock
 from fastapi.testclient import TestClient
 
 from shenase import models, enums
+from shenase.config import DEFAULT_AVATAR
 
 
 def test_create_user(test_client: TestClient) -> None:
@@ -49,6 +50,19 @@ def test_read_users_me(
     assert response.status_code == 200
     data = response.json()
     assert data['username'] == 'johndoe'
+
+
+def test_get_user_profile(
+    test_client: TestClient,
+    create_test_user: models.User,
+) -> None:
+    response = test_client.get(f'/users/{create_test_user.username}/profile/')
+    assert response.status_code == 200
+    data = response.json()
+    assert data['display_name'] == 'John Doe'
+    assert data['avatar'] == DEFAULT_AVATAR
+    assert data['bio'] is None
+    assert data['location'] is None
 
 
 def test_change_user_role(
