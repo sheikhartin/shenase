@@ -5,6 +5,7 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Boolean,
+    Integer,
     String,
     Enum,
     DateTime,
@@ -39,12 +40,7 @@ class User(Base):
 class Profile(Base):
     __tablename__ = 'profiles'
 
-    id = Column(
-        String(32),
-        default=lambda: uuid.uuid4().hex,
-        primary_key=True,
-        index=True,
-    )
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String(32), ForeignKey('users.id'), nullable=False)
     display_name = Column(String(50), nullable=False)
     avatar = Column(String(35), default=DEFAULT_AVATAR)
