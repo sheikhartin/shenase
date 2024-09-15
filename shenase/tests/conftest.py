@@ -96,9 +96,7 @@ def create_test_user(
         password='password123',
         display_name='John Doe',
     )
-    with patch('shenase.models.uuid.uuid4') as mock_uuid:
-        mock_uuid.return_value.hex = 'test_id'
-        return crud.create_user(db=test_db_session, user=user_data)
+    return crud.create_user(db=test_db_session, user=user_data)
 
 
 @pytest.fixture(scope='function')
