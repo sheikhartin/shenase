@@ -75,9 +75,7 @@ def create_test_admin_user(
         password='testpass123',
         display_name='Admin User',
     )
-    with patch('shenase.models.uuid.uuid4') as mock_uuid:
-        mock_uuid.return_value.hex = 'admin_id'
-        crud.create_user(db=test_db_session, user=user_data)
+    crud.create_user(db=test_db_session, user=user_data)
     return crud.update_user_role(
         db=test_db_session,
         username='adminuser',

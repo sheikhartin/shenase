@@ -1,6 +1,7 @@
 import os
 import shutil
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import UploadFile
@@ -19,7 +20,7 @@ def get_users(db: Session) -> Optional[list[models.User]]:
     return db.query(models.User).all()
 
 
-def get_user_by_id(db: Session, user_id: str) -> Optional[models.User]:
+def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
@@ -31,6 +32,10 @@ def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
 
 def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.email == email).first()
+
+
+def get_profiles(db: Session) -> Optional[list[models.Profile]]:
+    return db.query(models.Profile).all()
 
 
 def get_profile_by_id(
@@ -58,7 +63,7 @@ def get_profile_by_username(
 
 def get_profile_by_user_id(
     db: Session,
-    user_id: str,
+    user_id: int,
 ) -> Optional[models.Profile]:
     return (
         db.query(models.Profile)
@@ -91,11 +96,11 @@ def create_user(
         else None
     )
     db_profile = models.Profile(
-        user_id=db_user.id,
         display_name=user.display_name,
         avatar=avatar_file_path,
         bio=user.bio,
         location=user.location,
+        user_id=db_user.id,
     )
     db.add(db_profile)
     db.commit()
@@ -176,7 +181,7 @@ def _create_unique_filename(filename: str) -> str:
     return f'{unique_id}{file_extension}'
 
 
-def save_avatar(db: Session, user_id: str, file: UploadFile) -> str:
+def save_avatar(db: Session, user_id: int, file: UploadFile) -> str:
     filename = _create_unique_filename(file.filename)
     file_path = os.path.join(AVATAR_STORAGE_PATH, filename)
     with open(file_path, 'wb') as f:
@@ -189,3 +194,66 @@ def save_avatar(db: Session, user_id: str, file: UploadFile) -> str:
         db.refresh(db_profile)
 
     return filename
+
+
+def get_session_by_access_token(
+    db: Session,
+    access_token: str,
+) -> Optional[models.Session]:
+    return (
+        db.query(models.Session)
+        .filter(models.Session.access_token == access_token)
+        .first()
+    )
+
+
+def create_session(
+    db: Session,
+    user_id: int,
+    client_fingerprint: str,
+) -> models.Session:
+    db_session = models.Session(
+        client_fingerprint=client_fingerprint,
+        user_id=user_id,
+    )
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+    return db_session
+
+
+def validate_session(
+    db: Session,
+    access_token: str,
+    client_fingerprint: str,
+) -> Optional[models.Session]:
+    session = get_session_by_access_token(db, access_token)
+    if (
+        session is None
+        or session.status
+        in (
+            enums.SessionStatus.INACTIVE,
+            enums.SessionStatus.EXPIRED,
+        )
+        or session.client_fingerprint != client_fingerprint
+    ):
+        return None
+    elif session.expires_at.replace(tzinfo=timezone.utc) <= datetime.now(
+        timezone.utc
+    ):
+        session.status = enums.SessionStatus.EXPIRED
+        db.commit()
+
+    # session.expires_at = datetime.now(timezone.utc) + timedelta(
+    #     days=SESSION_EXPIRE_DAYS
+    # )
+    # db.commit()
+
+    return session
+
+
+def deactivate_session(db: Session, access_token: str) -> None:
+    session = get_session_by_access_token(db, access_token)
+    if session is not None:
+        session.status = enums.SessionStatus.INACTIVE
+        db.commit()
