@@ -24,6 +24,11 @@ async def read_users(
     return crud.get_users(db=db)
 
 
+@router.get('/profiles/', response_model=list[schemas.Profile])
+async def read_profiles(db: Session = Depends(get_db)):
+    return crud.get_profiles(db=db)
+
+
 @router.get('/users/{username}/profile/', response_model=schemas.Profile)
 async def read_user_profile(
     username: str,
