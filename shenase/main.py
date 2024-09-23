@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from shenase.database import Base, engine
 from shenase.routers import authn, users
-from shenase.middlewares import CookieAuthMiddleware
+from shenase.middlewares import SessionAuthenticationMiddleware
 from shenase.config import AVATAR_UPLOAD_FOLDER, AVATAR_STORAGE_PATH
 
 
@@ -32,14 +32,14 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-app.add_middleware(CookieAuthMiddleware)
+app.add_middleware(SessionAuthenticationMiddleware)
 
-static_files_path = f'/{AVATAR_UPLOAD_FOLDER}'
-static_files_directory = os.path.dirname(AVATAR_UPLOAD_FOLDER)
+media_files_path = f'/{AVATAR_UPLOAD_FOLDER}'
+media_files_directory = os.path.dirname(AVATAR_UPLOAD_FOLDER)
 app.mount(
-    static_files_path,
+    media_files_path,
     StaticFiles(directory=AVATAR_STORAGE_PATH),
-    name=static_files_directory,
+    name=media_files_directory,
 )
 
 app.include_router(authn.router, tags=['Authentication'])

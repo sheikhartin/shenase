@@ -2,7 +2,7 @@ from typing import Generator
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
-from shenase import models, crud, enums
+from shenase import models, enums
 from shenase.database import SessionLocal
 from shenase.exceptions import CredentialsError
 
@@ -15,17 +15,18 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-async def get_current_user(
-    request: Request,
-    db: Session = Depends(get_db),
-) -> models.User:
-    user_id = request.cookies.get('user_id')
-    if user_id is not None:
-        user = crud.get_user_by_id(db, user_id=user_id)
-        if user is None:
-            raise CredentialsError
-        return user
-    raise CredentialsError
+async def get_access_token(request: Request) -> str:
+    access_token = request.cookies.get('access_token')
+    if access_token is None:
+        raise CredentialsError
+    return access_token
+
+
+async def get_current_user(request: Request) -> models.User:
+    user = request.state.user
+    if user is None:
+        raise CredentialsError
+    return user
 
 
 async def get_current_active_user(

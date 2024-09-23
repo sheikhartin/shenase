@@ -1,20 +1,19 @@
-from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Request, Response, Body
 from sqlalchemy.orm import Session
 
 from shenase import schemas, crud, utils
-from shenase.dependencies import get_db
+from shenase.dependencies import get_db, get_access_token
 from shenase.exceptions import (
     IncorrectUsernameOrPasswordError,
     CredentialsError,
 )
-from shenase.config import COOKIE_EXPIRE_DAYS
 
 router = APIRouter()
 
 
 @router.post('/login/', response_model=schemas.User)
 async def login(
+    request: Request,
     response: Response,
     username: str = Body(...),
     password: str = Body(...),
@@ -25,12 +24,15 @@ async def login(
         password, user.hashed_password
     ):
         raise IncorrectUsernameOrPasswordError
+
+    session = crud.create_session(
+        db=db,
+        user_id=user.id,
+        client_fingerprint=utils.generate_client_fingerprint(request),
+    )
     response.set_cookie(
-        key='user_id',
-        value=user.id,
-        expires=(
-            datetime.now(timezone.utc) + timedelta(days=COOKIE_EXPIRE_DAYS)
-        ),
+        key='access_token',
+        value=session.access_token,
         httponly=True,
         secure=True,
         samesite='lax',
@@ -39,8 +41,13 @@ async def login(
 
 
 @router.post('/logout/')
-async def logout(response: Response):
-    response.delete_cookie(key='user_id')
+async def logout(
+    response: Response,
+    access_token: str = Depends(get_access_token),
+    db: Session = Depends(get_db),
+):
+    crud.deactivate_session(db=db, access_token=access_token)
+    response.delete_cookie(key='access_token')
     return {'message': 'Successfully logged out.'}
 
 
