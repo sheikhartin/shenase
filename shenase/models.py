@@ -23,7 +23,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(35), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(65), nullable=True)
+    hashed_password = Column(String(65))
     role = Column(Enum(enums.UserRole), default=enums.UserRole.USER)
     is_verified = Column(Boolean, default=False)
     status = Column(Enum(enums.UserStatus), default=enums.UserStatus.ACTIVE)
