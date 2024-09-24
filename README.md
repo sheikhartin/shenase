@@ -5,6 +5,7 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/sheikhartin/shenase)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/sheikhartin/shenase)
 ![GitHub repo size](https://img.shields.io/github/repo-size/sheikhartin/shenase)
+![GitHub workflow status](https://github.com/sheikhartin/shenase/actions/workflows/python-app.yml/badge.svg)
 
 System for managing user access and permissions.
 
