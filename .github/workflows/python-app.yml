@@ -1,0 +1,41 @@
+name: Shenase Microservice
+
+on:
+  - push
+  - pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.12"
+
+    - name: Install Poetry
+      run: |
+        pip install poetry
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Initialize environment variables
+      uses: cardinalby/export-env-action@v2
+      with:
+        envFile: 'shenase/.env.example'
+
+    - name: Lint with Ruff
+      run: |
+        poetry run ruff check
+
+    - name: Test with Pytest
+      run: |
+        poetry run pytest -rsP
