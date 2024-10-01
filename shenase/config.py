@@ -6,6 +6,8 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+DEBUG_ENABLED = os.environ['DEBUG_ENABLED'] == '1'
+
 DATABASE_URL = os.environ['DATABASE_URL']
 TEST_DATABASE_URL = os.environ['TEST_DATABASE_URL']
 

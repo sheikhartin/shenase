@@ -7,6 +7,7 @@ from shenase.exceptions import (
     IncorrectUsernameOrPasswordError,
     CredentialsError,
 )
+from shenase.config import DEBUG_ENABLED
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ async def login(
         key='access_token',
         value=session.access_token,
         httponly=True,
-        secure=True,
+        secure=False if DEBUG_ENABLED else True,
         samesite='lax',
     )
     return user
