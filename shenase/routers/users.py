@@ -48,7 +48,7 @@ async def create_user(
     display_name: str = Body(...),
     bio: Optional[str] = Body(None),
     location: Optional[str] = Body(None),
-    avatar: UploadFile = File(None),
+    avatar: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
 ):
     try:
