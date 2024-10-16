@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from shenase.database import Base, engine
-from shenase.routers import authn, users
+from shenase.routers import auth, users
 from shenase.middlewares import SessionAuthenticationMiddleware
 from shenase.config import AVATAR_UPLOAD_FOLDER, AVATAR_STORAGE_PATH
 
@@ -42,5 +42,5 @@ app.mount(
     name=media_files_directory,
 )
 
-app.include_router(authn.router, tags=['Authentication'])
+app.include_router(auth.router, tags=['Authentication and Authorization'])
 app.include_router(users.router, tags=['Users'])
