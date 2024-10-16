@@ -68,13 +68,13 @@ async def create_user(
 
 @router.patch('/users/me/', response_model=schemas.User)
 async def update_user(
-    username: str = Body(None),
-    email: str = Body(None),
-    password: str = Body(None),
-    display_name: str = Body(None),
+    username: Optional[str] = Body(None),
+    email: Optional[str] = Body(None),
+    password: Optional[str] = Body(None),
+    display_name: Optional[str] = Body(None),
     bio: Optional[str] = Body(None),
     location: Optional[str] = Body(None),
-    avatar: UploadFile = File(None),
+    avatar: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: schemas.User = Depends(get_current_active_user),
 ):
