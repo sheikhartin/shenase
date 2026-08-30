@@ -1,6 +1,6 @@
 ## Shenase
 
-![GitHub repo status](https://img.shields.io/badge/status-active-green?style=flat)
+![GitHub repo status](https://img.shields.io/badge/status-archived-yellowgreen?style=flat)
 ![GitHub license](https://img.shields.io/github/license/sheikhartin/shenase)
 ![GitHub contributors](https://img.shields.io/github/contributors/sheikhartin/shenase)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/sheikhartin/shenase)
